@@ -388,7 +388,7 @@
         </g>
       </svg>
 
-      <video class="feed-video" muted playsinline preload="auto">
+      <video class="feed-video" muted playsinline autoplay preload="auto">
         <source src="kling_20260830_VIDEO_Photoreali_1396_0.mp4" type="video/mp4" />
       </video>
     </div>
@@ -414,6 +414,17 @@
       }
 
       video.addEventListener("loadeddata", reveal);
+
+      // Safety net: some mobile browsers (notably iOS Safari on cellular,
+      // or with Low Power Mode on) won't preload/autoplay a video at all
+      // until a user has interacted with the page. The first tap or click
+      // anywhere gives it a nudge.
+      function nudge() {
+        video.play().catch(function () {});
+      }
+      ["touchstart", "click"].forEach(function (evt) {
+        document.addEventListener(evt, nudge, { once: true, passive: true });
+      });
 
       video.addEventListener("timeupdate", function () {
         if (video.duration && video.duration - video.currentTime <= 0.6) {
