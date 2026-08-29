@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Arena Gaming</title>
+<meta name="description" content="Arena Gaming — launching soon." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #0a0a10;
+    --void-2: #111119;
+    --wall: #15161f;
+    --skin: #2b2e42;
+    --ink: #f3f4f9;
+    --mute: #7d80a0;
+    --signal: #e6425a;
+    --signal-glow: #ff7086;
+
+    --font-display: "Anton", "Arial Narrow", Impact, sans-serif;
+    --font-body: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--void);
+    color: var(--ink);
+    font-family: var(--font-body);
+    overflow: hidden;
+  }
+
+  .surface {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 90% 55% at 50% 8%, rgba(230, 66, 90, 0.14), transparent 62%),
+      linear-gradient(180deg, var(--void) 0%, var(--void-2) 100%);
+  }
+
+  .scanlines {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.025) 0px,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    opacity: 0.5;
+  }
+
+  .vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(ellipse 70% 65% at 50% 45%, transparent 55%, rgba(0,0,0,0.55) 100%);
+  }
+
+  .beam {
+    position: fixed;
+    left: 0;
+    right: 0;
+    height: 180px;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(230, 66, 90, 0.05) 40%,
+      rgba(255, 112, 134, 0.10) 50%,
+      rgba(230, 66, 90, 0.05) 60%,
+      transparent 100%
+    );
+    mix-blend-mode: screen;
+    animation: sweep 11s ease-in-out infinite;
+  }
+
+  @keyframes sweep {
+    0%   { top: -25%; }
+    50%  { top: 105%; }
+    100% { top: -25%; }
+  }
+
+  .status {
+    position: fixed;
+    top: 28px;
+    left: 32px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--mute);
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fade-in 700ms ease-out 1400ms forwards;
+  }
+
+  .status .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--signal-glow);
+    box-shadow: 0 0 8px 2px rgba(255, 112, 134, 0.75);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+
+  .frame-id {
+    position: fixed;
+    top: 28px;
+    right: 32px;
+    z-index: 3;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--mute);
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fade-in 700ms ease-out 1400ms forwards;
+  }
+
+  .stage {
+    position: relative;
+    z-index: 2;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .brand {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: 0.55em;
+    font-size: clamp(12px, 2vw, 15px);
+    color: var(--mute);
+    margin: 0 0 clamp(24px, 5vh, 44px);
+    padding-left: 0.55em;
+    opacity: 0;
+    animation: fade-in 600ms ease-out 100ms forwards;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(52px, 12vw, 148px);
+    line-height: 0.88;
+    letter-spacing: 0.01em;
+    margin: 0;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-wrap: balance;
+    animation: power-on 1.4s steps(1, end) 350ms both;
+  }
+
+  h1 span {
+    display: block;
+    color: var(--signal);
+  }
+
+  @keyframes power-on {
+    0%   { opacity: 0; text-shadow: none; }
+    4%   { opacity: 1; text-shadow: 0 0 24px rgba(255,255,255,0.6); }
+    6%   { opacity: 0.2; }
+    9%   { opacity: 1; }
+    11%  { opacity: 0.3; }
+    14%  { opacity: 1; text-shadow: 0 0 2px rgba(255,255,255,0.2); }
+    100% { opacity: 1; text-shadow: 0 0 2px rgba(255,255,255,0.2); }
+  }
+
+  footer {
+    position: fixed;
+    bottom: 26px;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #4d5070;
+    opacity: 0;
+    animation: fade-in 700ms ease-out 1600ms forwards;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.5); opacity: 0.55; }
+  }
+
+  .hideout {
+    position: fixed;
+    left: -18px;
+    bottom: 0;
+    z-index: 2;
+    width: clamp(150px, 22vw, 230px);
+    height: auto;
+    pointer-events: none;
+    opacity: 0;
+    animation: fade-in 900ms ease-out 1900ms forwards;
+  }
+
+  .hideout svg { display: block; width: 100%; height: auto; }
+
+  .peeker {
+    animation: peek 4.5s ease-in-out infinite;
+    transform-origin: 0px 320px;
+  }
+
+  @keyframes peek {
+    0%, 100% { transform: translateX(0); }
+    50%      { transform: translateX(-9px); }
+  }
+
+  .eye-lid {
+    animation: blink 5.5s ease-in-out infinite;
+    transform-origin: 168px 108px;
+  }
+
+  @keyframes blink {
+    0%, 92%, 100% { transform: scaleY(0); }
+    95%           { transform: scaleY(1); }
+  }
+
+  .sweat-drop {
+    animation: drip 2.6s ease-in infinite;
+  }
+
+  @keyframes drip {
+    0%   { transform: translateY(0); opacity: 0; }
+    8%   { opacity: 1; }
+    75%  { opacity: 1; }
+    100% { transform: translateY(46px); opacity: 0; }
+  }
+
+  @media (max-width: 640px) {
+    .hideout { width: clamp(110px, 30vw, 160px); }
+    .frame-id { display: none; }
+    .status { top: 22px; left: 20px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .beam { animation: none; opacity: 0.4; }
+    h1 { animation: none; opacity: 1; text-shadow: none; }
+    .brand, footer, .status, .frame-id, .hideout { animation: none !important; opacity: 1 !important; }
+    .status .dot, .peeker, .eye-lid, .sweat-drop { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="surface"></div>
+  <div class="scanlines"></div>
+  <div class="beam"></div>
+  <div class="vignette"></div>
+
+  <div class="status"><span class="dot"></span>Status: Standby</div>
+  <div class="frame-id">Launch: TBC</div>
+
+  <main class="stage">
+    <div class="brand">Arena&nbsp;Gaming</div>
+    <h1>Watch<br />This<br /><span>Space</span></h1>
+  </main>
+
+  <footer>Arena Gaming — Competitive by design</footer>
+
+  <div class="hideout" aria-hidden="true">
+    <svg viewBox="0 0 240 320" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="140" height="320" fill="var(--wall)" />
+      <rect x="136" y="0" width="4" height="320" fill="rgba(230,66,90,0.35)" />
+
+      <g class="peeker">
+        <g fill="var(--skin)">
+          <rect x="128" y="196" width="11" height="22" rx="5.5" />
+          <rect x="128" y="219" width="11" height="22" rx="5.5" />
+          <rect x="128" y="242" width="11" height="22" rx="5.5" />
+        </g>
+
+        <ellipse cx="141" cy="112" rx="7" ry="10" fill="var(--skin)" />
+        <ellipse cx="171" cy="110" rx="33" ry="37" fill="var(--skin)" />
+
+        <path d="M156 92 Q168 82 184 89" stroke="var(--void)" stroke-width="4.5" fill="none" stroke-linecap="round" />
+
+        <circle cx="167" cy="108" r="7.5" fill="var(--ink)" />
+        <circle cx="169" cy="109" r="3.6" fill="var(--void)" />
+        <ellipse class="eye-lid" cx="167" cy="108" rx="8" ry="8" fill="var(--skin)" />
+
+        <ellipse cx="172" cy="132" rx="6" ry="4" fill="var(--void)" opacity="0.55" />
+
+        <path class="sweat-drop" d="M197 84 C197 80.5 200.5 76 200.5 76 C200.5 76 204 80.5 204 84 C204 86.2 202.4 88 200.5 88 C198.6 88 197 86.2 197 84 Z" fill="var(--signal-glow)" />
+      </g>
+    </svg>
+  </div>
+
+</body>
+</html>
