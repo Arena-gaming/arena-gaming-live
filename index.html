@@ -36,6 +36,8 @@
     overflow: hidden;
   }
 
+  /* ---------- broadcast-screen surface ---------- */
+
   .surface {
     position: fixed;
     inset: 0;
@@ -93,6 +95,8 @@
     100% { top: -25%; }
   }
 
+  /* ---------- status readout ---------- */
+
   .status {
     position: fixed;
     top: 28px;
@@ -132,6 +136,8 @@
     opacity: 0;
     animation: fade-in 700ms ease-out 1400ms forwards;
   }
+
+  /* ---------- content ---------- */
 
   .stage {
     position: relative;
@@ -211,19 +217,73 @@
     50%      { transform: scale(1.5); opacity: 0.55; }
   }
 
-  .hideout {
+  /* ---------- the reaction feed ---------- */
+
+  .feed {
     position: fixed;
-    left: -18px;
-    bottom: 0;
+    left: 24px;
+    bottom: 24px;
     z-index: 2;
     width: clamp(150px, 22vw, 230px);
-    height: auto;
-    pointer-events: none;
     opacity: 0;
     animation: fade-in 900ms ease-out 1900ms forwards;
   }
 
-  .hideout svg { display: block; width: 100%; height: auto; }
+  .feed-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--wall);
+    border: 1px solid rgba(230, 66, 90, 0.4);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 14px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .feed-tag {
+    position: absolute;
+    top: 8px;
+    left: 9px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--mute);
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  }
+
+  .feed-tag .feed-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--signal-glow);
+    box-shadow: 0 0 6px 2px rgba(255, 112, 134, 0.75);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+
+  .feed-fallback {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transition: opacity 0.6s ease;
+  }
+
+  .feed-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .feed.has-video .feed-fallback { opacity: 0; }
 
   .peeker {
     animation: peek 4.5s ease-in-out infinite;
@@ -257,7 +317,7 @@
   }
 
   @media (max-width: 640px) {
-    .hideout { width: clamp(110px, 30vw, 160px); }
+    .feed { width: clamp(110px, 30vw, 160px); }
     .frame-id { display: none; }
     .status { top: 22px; left: 20px; }
   }
@@ -265,8 +325,10 @@
   @media (prefers-reduced-motion: reduce) {
     .beam { animation: none; opacity: 0.4; }
     h1 { animation: none; opacity: 1; text-shadow: none; }
-    .brand, footer, .status, .frame-id, .hideout { animation: none !important; opacity: 1 !important; }
+    .brand, footer, .status, .frame-id, .feed { animation: none !important; opacity: 1 !important; }
     .status .dot, .peeker, .eye-lid, .sweat-drop { animation: none; }
+    .feed-video { display: none !important; }
+    .feed-fallback { opacity: 1 !important; }
   }
 </style>
 </head>
@@ -287,33 +349,87 @@
 
   <footer>Arena Gaming — Competitive by design</footer>
 
-  <div class="hideout" aria-hidden="true">
-    <svg viewBox="0 0 240 320" xmlns="http://www.w3.org/2000/svg">
-      <rect x="0" y="0" width="140" height="320" fill="var(--wall)" />
-      <rect x="136" y="0" width="4" height="320" fill="rgba(230,66,90,0.35)" />
+  <div class="feed" aria-hidden="true">
+    <div class="feed-frame">
+      <div class="feed-tag"><span class="feed-dot"></span>Cam 04 — Live</div>
 
-      <g class="peeker">
-        <g fill="var(--skin)">
-          <rect x="128" y="196" width="11" height="22" rx="5.5" />
-          <rect x="128" y="219" width="11" height="22" rx="5.5" />
-          <rect x="128" y="242" width="11" height="22" rx="5.5" />
+      <svg class="feed-fallback" viewBox="0 0 240 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+        <!-- wall the spectator is hiding behind -->
+        <rect x="0" y="0" width="140" height="320" fill="var(--wall)" />
+        <rect x="136" y="0" width="4" height="320" fill="rgba(230,66,90,0.35)" />
+
+        <g class="peeker">
+          <!-- gripping fingers -->
+          <g fill="var(--skin)">
+            <rect x="128" y="196" width="11" height="22" rx="5.5" />
+            <rect x="128" y="219" width="11" height="22" rx="5.5" />
+            <rect x="128" y="242" width="11" height="22" rx="5.5" />
+          </g>
+
+          <!-- ear -->
+          <ellipse cx="141" cy="112" rx="7" ry="10" fill="var(--skin)" />
+
+          <!-- head -->
+          <ellipse cx="171" cy="110" rx="33" ry="37" fill="var(--skin)" />
+
+          <!-- worried eyebrow -->
+          <path d="M156 92 Q168 82 184 89" stroke="var(--void)" stroke-width="4.5" fill="none" stroke-linecap="round" />
+
+          <!-- eye -->
+          <circle cx="167" cy="108" r="7.5" fill="var(--ink)" />
+          <circle cx="169" cy="109" r="3.6" fill="var(--void)" />
+          <ellipse class="eye-lid" cx="167" cy="108" rx="8" ry="8" fill="var(--skin)" />
+
+          <!-- open, tense mouth -->
+          <ellipse cx="172" cy="132" rx="6" ry="4" fill="var(--void)" opacity="0.55" />
+
+          <!-- sweat drop -->
+          <path class="sweat-drop" d="M197 84 C197 80.5 200.5 76 200.5 76 C200.5 76 204 80.5 204 84 C204 86.2 202.4 88 200.5 88 C198.6 88 197 86.2 197 84 Z" fill="var(--signal-glow)" />
         </g>
+      </svg>
 
-        <ellipse cx="141" cy="112" rx="7" ry="10" fill="var(--skin)" />
-        <ellipse cx="171" cy="110" rx="33" ry="37" fill="var(--skin)" />
-
-        <path d="M156 92 Q168 82 184 89" stroke="var(--void)" stroke-width="4.5" fill="none" stroke-linecap="round" />
-
-        <circle cx="167" cy="108" r="7.5" fill="var(--ink)" />
-        <circle cx="169" cy="109" r="3.6" fill="var(--void)" />
-        <ellipse class="eye-lid" cx="167" cy="108" rx="8" ry="8" fill="var(--skin)" />
-
-        <ellipse cx="172" cy="132" rx="6" ry="4" fill="var(--void)" opacity="0.55" />
-
-        <path class="sweat-drop" d="M197 84 C197 80.5 200.5 76 200.5 76 C200.5 76 204 80.5 204 84 C204 86.2 202.4 88 200.5 88 C198.6 88 197 86.2 197 84 Z" fill="var(--signal-glow)" />
-      </g>
-    </svg>
+      <video class="feed-video" muted playsinline preload="auto">
+        <source src="kling_20260830_VIDEO_Photoreali_1396_0.mp4" type="video/mp4" />
+      </video>
+    </div>
   </div>
+
+  <script>
+    (function () {
+      var feed = document.querySelector(".feed");
+      var video = feed && feed.querySelector(".feed-video");
+      if (!video) return;
+
+      var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduced) return;
+
+      var ready = false;
+
+      function reveal() {
+        if (ready) return;
+        ready = true;
+        feed.classList.add("has-video");
+        video.style.opacity = 1;
+        video.play().catch(function () {});
+      }
+
+      video.addEventListener("loadeddata", reveal);
+
+      video.addEventListener("timeupdate", function () {
+        if (video.duration && video.duration - video.currentTime <= 0.6) {
+          video.style.opacity = 0;
+        }
+      });
+
+      video.addEventListener("ended", function () {
+        video.currentTime = 0;
+        setTimeout(function () {
+          video.style.opacity = 1;
+          video.play().catch(function () {});
+        }, 600);
+      });
+    })();
+  </script>
 
 </body>
 </html>
