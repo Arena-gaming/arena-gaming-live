@@ -232,13 +232,15 @@
 
   .feed {
     position: fixed;
-    left: 24px;
     bottom: 24px;
     z-index: 2;
     width: clamp(150px, 22vw, 230px);
     opacity: 0;
     animation: fade-in 900ms ease-out 1900ms forwards;
   }
+
+  .feed-left { left: 24px; }
+  .feed-right { right: 24px; }
 
   .feed-frame {
     position: relative;
@@ -327,6 +329,35 @@
     100% { transform: translateY(46px); opacity: 0; }
   }
 
+  /* second spectator — celebrating, mirrored to the right edge */
+
+  .peeker-cheer {
+    animation: bounce 1.6s ease-in-out infinite;
+    transform-origin: 240px 320px;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-7px); }
+  }
+
+  .eye-lid-cheer {
+    animation: blink 6.2s ease-in-out infinite;
+    transform-origin: 73px 108px;
+  }
+
+  .spark {
+    animation: twinkle 1.4s ease-in-out infinite;
+  }
+
+  .spark:nth-child(2) { animation-delay: 0.35s; }
+  .spark:nth-child(3) { animation-delay: 0.7s; }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(0.7); }
+    50%      { opacity: 1; transform: scale(1); }
+  }
+
   @media (max-width: 640px) {
     .feed { width: clamp(110px, 30vw, 160px); }
     .frame-id { display: none; }
@@ -337,7 +368,7 @@
     .beam { animation: none; opacity: 0.4; }
     h1 { animation: none; opacity: 1; text-shadow: none; }
     .brand, footer, .status, .frame-id, .feed { animation: none !important; opacity: 1 !important; }
-    .status .dot, .peeker, .eye-lid, .sweat-drop { animation: none; }
+    .status .dot, .peeker, .eye-lid, .sweat-drop, .peeker-cheer, .eye-lid-cheer, .spark { animation: none; }
     .feed-video { display: none !important; }
     .feed-fallback { opacity: 1 !important; }
   }
@@ -360,7 +391,7 @@
 
   <footer>Arena Gaming — Competitive by design</footer>
 
-  <div class="feed" aria-hidden="true">
+  <div class="feed feed-left" aria-hidden="true">
     <div class="feed-frame">
       <div class="feed-tag"><span class="feed-dot"></span>Cam 04 — Live</div>
 
@@ -405,50 +436,113 @@
     </div>
   </div>
 
+  <div class="feed feed-right" aria-hidden="true">
+    <div class="feed-frame">
+      <div class="feed-tag"><span class="feed-dot"></span>Cam 07 — Live</div>
+
+      <svg class="feed-fallback" viewBox="0 0 240 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+        <!-- wall the spectator is celebrating behind, mirrored to the right edge -->
+        <rect x="100" y="0" width="140" height="320" fill="var(--wall)" />
+        <rect x="100" y="0" width="4" height="320" fill="rgba(230,66,90,0.35)" />
+
+        <g class="peeker-cheer">
+          <!-- steadying hand on the corner -->
+          <g fill="var(--skin)">
+            <rect x="101" y="196" width="11" height="22" rx="5.5" />
+            <rect x="101" y="219" width="11" height="22" rx="5.5" />
+            <rect x="101" y="242" width="11" height="22" rx="5.5" />
+          </g>
+
+          <!-- raised fist pumping in celebration -->
+          <g fill="var(--skin)">
+            <rect x="55" y="60" width="10" height="42" rx="5" transform="rotate(18 60 100)" />
+            <circle cx="50" cy="55" r="12" />
+          </g>
+
+          <!-- ear -->
+          <ellipse cx="99" cy="112" rx="7" ry="10" fill="var(--skin)" />
+
+          <!-- head -->
+          <ellipse cx="69" cy="110" rx="33" ry="37" fill="var(--skin)" />
+
+          <!-- raised, excited eyebrow -->
+          <path d="M84 88 Q72 76 56 85" stroke="var(--void)" stroke-width="4.5" fill="none" stroke-linecap="round" />
+
+          <!-- eye, wide with joy -->
+          <circle cx="73" cy="108" r="7.5" fill="var(--ink)" />
+          <circle cx="71" cy="109" r="3.6" fill="var(--void)" />
+          <ellipse class="eye-lid-cheer" cx="73" cy="108" rx="8" ry="8" fill="var(--skin)" />
+
+          <!-- big open, joyful grin -->
+          <path d="M55 128 Q69 145 85 128 Q69 138 55 128 Z" fill="var(--void)" opacity="0.55" />
+
+          <!-- celebration sparks -->
+          <path class="spark" d="M198 70 L201 78 L209 81 L201 84 L198 92 L195 84 L187 81 L195 78 Z" fill="var(--signal-glow)" />
+          <path class="spark" d="M212 100 L214 105 L219 107 L214 109 L212 114 L210 109 L205 107 L210 105 Z" fill="var(--signal-glow)" />
+          <path class="spark" d="M195 116 L197 121 L202 123 L197 125 L195 130 L193 125 L188 123 L193 121 Z" fill="var(--signal-glow)" />
+        </g>
+      </svg>
+
+      <video class="feed-video" muted playsinline autoplay preload="auto">
+        <source src="kling_celebration.mp4" type="video/mp4" />
+      </video>
+    </div>
+  </div>
+
   <script>
     (function () {
-      var feed = document.querySelector(".feed");
-      var video = feed && feed.querySelector(".feed-video");
-      if (!video) return;
-
       var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (reduced) return;
 
-      var ready = false;
+      var videos = [];
 
-      function reveal() {
-        if (ready) return;
-        ready = true;
-        feed.classList.add("has-video");
-        video.style.opacity = 1;
-        video.play().catch(function () {});
+      function setUpFeed(feed) {
+        var video = feed.querySelector(".feed-video");
+        if (!video) return;
+
+        var ready = false;
+
+        function reveal() {
+          if (ready) return;
+          ready = true;
+          feed.classList.add("has-video");
+          video.style.opacity = 1;
+          video.play().catch(function () {});
+        }
+
+        video.addEventListener("loadeddata", reveal);
+
+        video.addEventListener("timeupdate", function () {
+          if (video.duration && video.duration - video.currentTime <= 0.6) {
+            video.style.opacity = 0;
+          }
+        });
+
+        video.addEventListener("ended", function () {
+          video.currentTime = 0;
+          setTimeout(function () {
+            video.style.opacity = 1;
+            video.play().catch(function () {});
+          }, 600);
+        });
+
+        videos.push(video);
       }
 
-      video.addEventListener("loadeddata", reveal);
+      document.querySelectorAll(".feed").forEach(setUpFeed);
+      if (!videos.length) return;
 
       // Safety net: some mobile browsers (notably iOS Safari on cellular,
       // or with Low Power Mode on) won't preload/autoplay a video at all
       // until a user has interacted with the page. The first tap or click
-      // anywhere gives it a nudge.
+      // anywhere gives every feed a nudge.
       function nudge() {
-        video.play().catch(function () {});
+        videos.forEach(function (video) {
+          video.play().catch(function () {});
+        });
       }
       ["touchstart", "click"].forEach(function (evt) {
         document.addEventListener(evt, nudge, { once: true, passive: true });
-      });
-
-      video.addEventListener("timeupdate", function () {
-        if (video.duration && video.duration - video.currentTime <= 0.6) {
-          video.style.opacity = 0;
-        }
-      });
-
-      video.addEventListener("ended", function () {
-        video.currentTime = 0;
-        setTimeout(function () {
-          video.style.opacity = 1;
-          video.play().catch(function () {});
-        }, 600);
       });
     })();
   </script>
